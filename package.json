@@ -1,0 +1,95 @@
+{
+  "name": "@mcbe-registry/client",
+  "version": "1.0.0",
+  "description": "MCBE Bedrock Registry schema-4 client (typed MCBE-IPC PROTO). Install mcbe-ipc from OmniacDev; enable the Bedrock Registry host pack.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog.d.ts",
+      "import": "./dist/catalog.js"
+    },
+    "./match": {
+      "types": "./dist/match.d.ts",
+      "import": "./dist/match.js"
+    },
+    "./compact-json": {
+      "types": "./dist/compactJson.d.ts",
+      "import": "./dist/compactJson.js"
+    },
+    "./source": {
+      "types": "./dist/source.d.ts",
+      "import": "./dist/source.js"
+    },
+    "./kinds": {
+      "types": "./dist/kinds.d.ts",
+      "import": "./dist/kinds.js"
+    },
+    "./units": {
+      "types": "./dist/units.d.ts",
+      "import": "./dist/units.js"
+    },
+    "./bedrock": {
+      "types": "./dist/bedrock.d.ts",
+      "import": "./dist/bedrock.js"
+    },
+    "./mcbe-ipc": {
+      "types": "./dist/mcbeIpc.d.ts",
+      "import": "./dist/mcbeIpc.js"
+    },
+    "./fingerprint": {
+      "types": "./dist/recipeFingerprint.d.ts",
+      "import": "./dist/recipeFingerprint.js"
+    },
+    "./proto": {
+      "types": "./dist/proto.d.ts",
+      "import": "./dist/proto.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:release": "node scripts/build-release.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "mcbe-ipc": "^3.4.2"
+  },
+  "peerDependencies": {
+    "@minecraft/server": "^1.18.0 || ^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@minecraft/server": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@minecraft/server": "2.8.0",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xXDMOGXx/mcbe-registry-client.git"
+  },
+  "homepage": "https://github.com/xXDMOGXx/mcbe-registry-client#readme",
+  "bugs": {
+    "url": "https://github.com/xXDMOGXx/mcbe-registry-client/issues"
+  }
+}
