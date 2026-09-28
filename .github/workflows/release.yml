@@ -1,0 +1,66 @@
+# GitHub Release for bedrock-registry-client.js. No Omniac sources.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: github-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test
+
+      - run: npm run build
+
+      - run: npm run build:release
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v${VERSION}"
+          JS="dist/release/bedrock-registry-client.js"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists — skipping."
+            exit 0
+          fi
+          NOTES_FILE=release-notes.md
+          awk -v ver="$VERSION" '
+            $0 == "## " ver { keep=1; next }
+            keep && /^## / { exit }
+            keep { print }
+          ' CHANGELOG.md | sed -e 's/[[:space:]]*$//' > "$NOTES_FILE"
+          if [ ! -s "$NOTES_FILE" ]; then
+            printf '%s\n' "@mcbe-registry/client ${VERSION}." > "$NOTES_FILE"
+          fi
+          {
+            echo "## @mcbe-registry/client ${VERSION}"
+            echo
+            cat "$NOTES_FILE"
+          } > "${NOTES_FILE}.tmp"
+          mv "${NOTES_FILE}.tmp" "$NOTES_FILE"
+          gh release create "$TAG" \
+            "$JS" \
+            --title "Bedrock Registry client ${VERSION}" \
+            --notes-file "$NOTES_FILE"
