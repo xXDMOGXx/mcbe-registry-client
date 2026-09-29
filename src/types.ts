@@ -88,7 +88,7 @@ export interface LootEntry {
   count?: number;
   min?: number;
   max?: number;
-  /** Permille; 1000 = always. */
+  /** Percent 0–100; 100 = always. */
   chance?: number;
 }
 
@@ -217,7 +217,6 @@ export interface HelloReply {
 /** Register ask over IPC. */
 export interface RegisterAsk {
   recipes: Recipe[];
-  documents?: string[];
   source?: string;
   kind?: string;
   fp?: string;

@@ -120,12 +120,26 @@ describe("createClient", () => {
     };
   }
 
-  it("waitReady succeeds on JSON ready schema 4", async () => {
+  it("waitReady succeeds on JSON ready schema 5", async () => {
     const clock = fakeClock();
     const discovery = fakeDiscovery();
     const client = createClient({ ipc: hangingIpc(), discovery, clock, timeoutTicks: 2 });
     discovery.emit(JSON_EVENT.ready, JSON.stringify({ v: PROTOCOL_SCHEMA, schema: PROTOCOL_SCHEMA }));
     await expect(client.waitReady()).resolves.toBe(true);
+    client.dispose();
+  });
+
+  it("waitReady fails immediately on JSON ready schema 4", async () => {
+    const lines: string[] = [];
+    vi.spyOn(console, "warn").mockImplementation((m: string) => {
+      lines.push(m);
+    });
+    const clock = fakeClock();
+    const discovery = fakeDiscovery();
+    const client = createClient({ ipc: hangingIpc(), discovery, clock, discoveryTimeoutTicks: 20 });
+    discovery.emit(JSON_EVENT.ready, JSON.stringify({ v: 4, schema: 4 }));
+    await expect(client.waitReady()).resolves.toBe(false);
+    expect(lines).toContain(HOST_SCHEMA_OUTDATED_WARN);
     client.dispose();
   });
 
@@ -165,7 +179,7 @@ describe("createClient", () => {
     const clock = fakeClock();
     const discovery = fakeDiscovery();
     const client = createClient({ ipc: hangingIpc(), discovery, clock, discoveryTimeoutTicks: 20 });
-    discovery.emit(JSON_EVENT.ready, JSON.stringify({ v: 5, schema: 5 }));
+    discovery.emit(JSON_EVENT.ready, JSON.stringify({ v: PROTOCOL_SCHEMA + 1, schema: PROTOCOL_SCHEMA + 1 }));
     await expect(client.waitReady()).resolves.toBe(false);
     expect(lines).toContain(CLIENT_SCHEMA_OUTDATED_WARN);
     expect(lines).not.toContain(HOST_SCHEMA_OUTDATED_WARN);
@@ -235,7 +249,7 @@ describe("createClient", () => {
           block: "addon:ore",
           tool: "none",
         });
-        return { entries: [], documents: [] };
+        return { entries: [] };
       },
       on: () => () => {},
       handle: () => () => {},
@@ -345,6 +359,43 @@ describe("createClient", () => {
     await client.register({ source: "mymod", kind: "item" });
     expect(invokes).toHaveLength(1);
     expect(invokes[0]).toMatchObject({ source: "mymod", kind: "item", recipes: [] });
+    expect(invokes[0]).toMatchObject({ items: undefined });
+    client.dispose();
+  });
+
+  it("register item miss sends typed item wires not JSON documents", async () => {
+    const clock = fakeClock();
+    const discovery = fakeDiscovery();
+    let n = 0;
+    const invokes: unknown[] = [];
+    const ipc: PeerIpc = {
+      send() {},
+      async invoke(channel, _ser, value) {
+        expect(channel).toBe(CHANNEL.register);
+        n += 1;
+        if (n === 1) return { ok: false, err: "fp" };
+        invokes.push(value);
+        return { ok: true };
+      },
+      on: () => () => {},
+      handle: () => () => {},
+    };
+    const client = createClient({ ipc, discovery, clock, timeoutTicks: 5 });
+    discovery.emit(JSON_EVENT.ready, JSON.stringify({ v: PROTOCOL_SCHEMA, schema: PROTOCOL_SCHEMA }));
+    client.add("item", { id: "mymod:widget", extra: { n: 1 } });
+    await client.register({ source: "mymod", kind: "item" });
+    expect(invokes).toHaveLength(1);
+    expect(invokes[0]).toMatchObject({
+      source: "mymod",
+      kind: "item",
+      items: [
+        {
+          id: "mymod:widget",
+          extensions: JSON.stringify({ extra: { n: 1 } }),
+        },
+      ],
+    });
+    expect(invokes[0]).not.toHaveProperty("documents");
     client.dispose();
   });
 
@@ -401,13 +452,13 @@ describe("createClient", () => {
           if (filter.source === "other") {
             return {
               entries: [],
-              documents: [JSON.stringify({ id: "other:latex", kind: "liquid", vessels: [] })],
+              fluids: [{ id: "other:latex", kind: "liquid", vessels: [] }],
               sources: ["other"],
             };
           }
           return {
             entries: [],
-            documents: [JSON.stringify({ id: "addon:oil", kind: "liquid", vessels: [] })],
+            fluids: [{ id: "addon:oil", kind: "liquid", vessels: [] }],
             sources: ["addon"],
           };
         }

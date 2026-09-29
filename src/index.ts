@@ -35,6 +35,15 @@ export {
   decodeRecipe,
 } from "./client.js";
 export type { RecipeRegistryClient, CreateClientOptions } from "./client.js";
+export {
+  documentsFromOverlayList,
+  documentFromOverlayGet,
+  isOverlayKind,
+  overlayGetFields,
+  overlayListFields,
+  overlayListsEmpty,
+} from "./overlayWire.js";
+export type { OverlayGetFields, OverlayKind, OverlayListFields } from "./overlayWire.js";
 export { createCatalog, documentHasBadAmount } from "./catalog.js";
 export type {
   Catalog,
@@ -67,6 +76,8 @@ export {
   stringifyEnvelope,
 } from "./compactJson.js";
 export { isValidSource } from "./source.js";
+export { registerFilledKinds } from "./registerFilled.js";
+export type { FilledKindDocuments, RegisterFilledClient } from "./registerFilled.js";
 export type { PeerIpc, IpcStringApi, TickClock, DiscoveryTransport } from "./ipcTypes.js";
 export { LOOT_TOOL_NONE } from "./types.js";
 export type {

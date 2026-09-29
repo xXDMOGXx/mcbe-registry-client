@@ -1,10 +1,10 @@
 /**
- * Schema 4 wire: MCBE-IPC typed PROTO channels and advertised protocol version.
- * JSON `bedrockregistry:ready` / `hello` carry `schema: 4` for discovery only.
+ * Schema 5 wire: MCBE-IPC typed PROTO channels and advertised protocol version.
+ * JSON `bedrockregistry:ready` / `hello` carry `schema: 5` for discovery only.
  */
 
 /** Advertised host protocol (`ready.schema` / IPC hello). */
-export const PROTOCOL_SCHEMA = 4;
+export const PROTOCOL_SCHEMA = 5;
 
 /** Legacy constant; schema-1 JSON data envelopes are no longer served. */
 export const JSON_V1 = 1;
@@ -30,11 +30,11 @@ export const JSON_EVENT = {
 
 /** Content-log / BDS warning for schema-1 JSON callers. */
 export const SCHEMA1_DEPRECATION_WARN =
-  "[bedrock-registry] schema 1 (JSON) is deprecated; this world needs Bedrock Registry schema 4. Notify the addon author to update to @mcbe-registry/client.";
+  "[bedrock-registry] schema 1 (JSON) is deprecated; this world needs Bedrock Registry schema 5. Notify the addon author to update to @mcbe-registry/client.";
 
 /** Client saw a host `schema`/`v` below {@link PROTOCOL_SCHEMA}. */
 export const HOST_SCHEMA_OUTDATED_WARN =
-  "[bedrock-registry] Bedrock Registry is outdated; this world needs a host that speaks schema 4. Update the Bedrock Registry pack.";
+  "[bedrock-registry] Bedrock Registry is outdated; this world needs a host that speaks schema 5. Update the Bedrock Registry pack.";
 
 /** Client saw a host `schema` above {@link PROTOCOL_SCHEMA}. */
 export const CLIENT_SCHEMA_OUTDATED_WARN =

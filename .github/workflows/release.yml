@@ -1,4 +1,4 @@
-# GitHub Release for bedrock-registry-client.js. No Omniac sources.
+# GitHub Release for bedrock-registry-client.js and the register template. No Omniac sources.
 name: Release
 
 on:
@@ -41,6 +41,7 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           TAG="v${VERSION}"
           JS="dist/release/bedrock-registry-client.js"
+          TEMPLATE="template/bedrock-registry-register.js"
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release ${TAG} already exists — skipping."
             exit 0
@@ -62,5 +63,6 @@ jobs:
           mv "${NOTES_FILE}.tmp" "$NOTES_FILE"
           gh release create "$TAG" \
             "$JS" \
+            "$TEMPLATE" \
             --title "Bedrock Registry client ${VERSION}" \
             --notes-file "$NOTES_FILE"

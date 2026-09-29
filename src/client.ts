@@ -4,6 +4,12 @@ import { noteClientSchemaOutdated, noteHostSchemaOutdated } from "./compatibilit
 import type { DiscoveryTransport, PeerIpc, TickClock } from "./ipcTypes.js";
 import { DEFAULT_REGISTRY_KIND } from "./kinds.js";
 import {
+  documentsFromOverlayList,
+  documentFromOverlayGet,
+  isOverlayKind,
+  overlayListFields,
+} from "./overlayWire.js";
+import {
   GetAsk,
   GetReply,
   Hello,
@@ -52,16 +58,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function parseDocument(raw: string): RegistryDocument | undefined {
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    if (!isRecord(parsed) || typeof parsed.id !== "string") return undefined;
-    return parsed as RegistryDocument;
-  } catch {
-    return undefined;
-  }
-}
-
 /** Numeric `schema`, else `v`, on JSON ready / IPC hello. */
 export function advertisedSchema(value: unknown): number | undefined {
   if (!isRecord(value)) return undefined;
@@ -86,7 +82,7 @@ function withTimeout<T>(clock: TickClock, ticks: number, promise: Promise<T>): P
   });
 }
 
-/** Schema-4 Bedrock Registry client (typed IPC data + JSON discovery). */
+/** Schema-5 Bedrock Registry client (typed IPC data + JSON discovery). */
 export interface RecipeRegistryClient {
   waitReady(): Promise<boolean>;
   catalogMinecraft(): string | undefined;
@@ -177,7 +173,7 @@ export function createClient(options: CreateClientOptions): RecipeRegistryClient
     kind: string;
     fp?: string;
     recipes: Recipe[];
-    documents?: string[];
+    overlay?: ReturnType<typeof overlayListFields>;
   }): Promise<OkReply | undefined> {
     return await withTimeout(
       options.clock,
@@ -190,7 +186,14 @@ export function createClient(options: CreateClientOptions): RecipeRegistryClient
           kind: payload.kind === DEFAULT_REGISTRY_KIND ? undefined : payload.kind,
           fp: payload.fp,
           recipes: payload.recipes.map(encodeRecipe),
-          documents: payload.documents,
+          packs: payload.overlay?.packs,
+          items: payload.overlay?.items,
+          blocks: payload.overlay?.blocks,
+          entities: payload.overlay?.entities,
+          fluids: payload.overlay?.fluids,
+          gases: payload.overlay?.gases,
+          tags: payload.overlay?.tags,
+          loots: payload.overlay?.loots,
         },
         OkReplyProto,
       ),
@@ -286,21 +289,20 @@ export function createClient(options: CreateClientOptions): RecipeRegistryClient
       const kind = opts?.kind ?? DEFAULT_REGISTRY_KIND;
       const queued = pendingOf(kind);
       const recipes = kind === DEFAULT_REGISTRY_KIND ? (queued as Recipe[]) : [];
-      const documents =
-        kind === DEFAULT_REGISTRY_KIND ? undefined : queued.map((doc) => JSON.stringify(doc));
+      const overlay = isOverlayKind(kind) ? overlayListFields(kind, queued) : undefined;
       const fp =
         kind === DEFAULT_REGISTRY_KIND
           ? canonicalizeRecipes(recipes)
           : canonicalizeDocuments(queued);
       if (source !== undefined) {
-        const ping = await invokeRegister({ source, kind, fp, recipes: [], documents: undefined });
+        const ping = await invokeRegister({ source, kind, fp, recipes: [] });
         if (ping?.ok) {
           options.onFingerprint?.("match");
           return ping;
         }
         options.onFingerprint?.("miss");
       }
-      return await invokeRegister({ source, kind, fp, recipes, documents });
+      return await invokeRegister({ source, kind, fp, recipes, overlay });
     },
     async unregister(ids) {
       await withTimeout(
@@ -344,14 +346,8 @@ export function createClient(options: CreateClientOptions): RecipeRegistryClient
       if (kind === DEFAULT_REGISTRY_KIND) {
         return reply.recipe !== undefined ? decodeRecipe(reply.recipe) : undefined;
       }
-      if (reply.document === undefined) return undefined;
-      try {
-        const parsed = JSON.parse(reply.document) as unknown;
-        if (!isRecord(parsed) || typeof parsed.id !== "string") return undefined;
-        return parsed as RegistryDocument;
-      } catch {
-        return undefined;
-      }
+      if (!isOverlayKind(kind)) return undefined;
+      return documentFromOverlayGet(kind, reply);
     },
     async list(kindOrFilter?: string | ListFilter, filter?: ListFilter): Promise<CatalogList> {
       const empty: CatalogList = { entries: [], documents: [], sources: [] };
@@ -388,11 +384,12 @@ export function createClient(options: CreateClientOptions): RecipeRegistryClient
         ),
       );
       if (reply === undefined) return empty;
-      const documents: RegistryDocument[] = [];
-      for (const raw of reply.documents ?? []) {
-        const doc = parseDocument(raw);
-        if (doc !== undefined) documents.push(doc);
-      }
+      const documents =
+        kind === DEFAULT_REGISTRY_KIND
+          ? (reply.recipes ?? []).map(decodeRecipe)
+          : isOverlayKind(kind)
+            ? documentsFromOverlayList(kind, reply)
+            : [];
       const sources = [...(reply.sources ?? [])];
       return {
         entries: reply.entries.map(decodeListEntry),
@@ -492,4 +489,18 @@ export function createClient(options: CreateClientOptions): RecipeRegistryClient
 }
 
 /** Re-export wire helpers used by the host when encoding list/result rows. */
-export { encodeListEntry, encodeMatchResult, encodeRecipe, decodeMatchQuery, decodeRecipe };
+export {
+  encodeListEntry,
+  encodeMatchResult,
+  encodeRecipe,
+  decodeMatchQuery,
+  decodeRecipe,
+};
+export {
+  documentsFromOverlayList,
+  documentFromOverlayGet,
+  isOverlayKind,
+  overlayGetFields,
+  overlayListFields,
+  overlayListsEmpty,
+} from "./overlayWire.js";

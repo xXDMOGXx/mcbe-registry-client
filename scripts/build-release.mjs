@@ -23,7 +23,7 @@ await esbuild.build({
   banner: {
     js: [
       "/**",
-      " * @mcbe-registry/client — schema 4 Release build.",
+      " * @mcbe-registry/client — schema 5 Release build.",
       " * Place Omniac mcbe-ipc next to this file as ./mcbe-ipc.js (see README).",
       " * Do not treat this file as a substitute for installing mcbe-ipc yourself.",
       " */",

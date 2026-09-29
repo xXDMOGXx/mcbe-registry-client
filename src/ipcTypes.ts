@@ -1,6 +1,6 @@
 import { PROTO } from "mcbe-ipc";
 
-/** Injectable typed MCBE-IPC used by the schema-4 client/host. */
+/** Injectable typed MCBE-IPC used by the schema-5 client/host. */
 export interface PeerIpc {
   send<S>(channel: string, serializer: PROTO.Serializer<S>, value: S): void;
   invoke<S, D>(

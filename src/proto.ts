@@ -28,19 +28,113 @@ export const RecipeWire = PROTO.Object({
   extensions: PROTO.Optional(PROTO.String),
 });
 
+/** Potion identity on a fluid vessel. */
+export const PotionWire = PROTO.Object({
+  effectType: PROTO.String,
+  deliveryType: PROTO.String,
+});
+
+/** Fluid/gas vessel on the wire. */
+export const FluidVesselWire = PROTO.Object({
+  filled: PROTO.String,
+  empty: PROTO.String,
+  amount: PROTO.VarInt32,
+  potion: PROTO.Optional(PotionWire),
+});
+
+/** Item fuel on the wire. */
+export const ItemFuelWire = PROTO.Object({
+  burnTicks: PROTO.VarInt32,
+});
+
+/** Pack document; open keys in `extensions` JSON. */
+export const PackWire = PROTO.Object({
+  id: PROTO.String,
+  source: PROTO.Optional(PROTO.String),
+  displayName: PROTO.Optional(PROTO.String),
+  version: PROTO.Optional(PROTO.String),
+  namespace: PROTO.Optional(PROTO.String),
+  creator: PROTO.Optional(PROTO.String),
+  description: PROTO.Optional(PROTO.String),
+  extensions: PROTO.Optional(PROTO.String),
+});
+
+/** Item document; open keys in `extensions` JSON. */
+export const ItemWire = PROTO.Object({
+  id: PROTO.String,
+  tags: PROTO.Optional(PROTO.Array(PROTO.String)),
+  stack: PROTO.Optional(PROTO.VarInt32),
+  fuel: PROTO.Optional(ItemFuelWire),
+  extensions: PROTO.Optional(PROTO.String),
+});
+
+/** Block or entity document; open keys in `extensions` JSON. */
+export const IdTagsWire = PROTO.Object({
+  id: PROTO.String,
+  tags: PROTO.Optional(PROTO.Array(PROTO.String)),
+  extensions: PROTO.Optional(PROTO.String),
+});
+
+/** Fluid or gas document; open keys in `extensions` JSON. */
+export const FluidWire = PROTO.Object({
+  id: PROTO.String,
+  kind: PROTO.Optional(PROTO.String),
+  vessels: PROTO.Array(FluidVesselWire),
+  texture: PROTO.Optional(PROTO.String),
+  tags: PROTO.Optional(PROTO.Array(PROTO.String)),
+  extensions: PROTO.Optional(PROTO.String),
+});
+
+/** Tag document; open keys in `extensions` JSON. */
+export const TagWire = PROTO.Object({
+  id: PROTO.String,
+  domain: PROTO.Optional(PROTO.String),
+  members: PROTO.Optional(PROTO.Array(PROTO.String)),
+  extensions: PROTO.Optional(PROTO.String),
+});
+
+/** Loot drop row; `chance` is percent 0–100. */
+export const LootEntryWire = PROTO.Object({
+  item: PROTO.Optional(PROTO.String),
+  tag: PROTO.Optional(PROTO.String),
+  fluid: PROTO.Optional(PROTO.String),
+  gas: PROTO.Optional(PROTO.String),
+  count: PROTO.Optional(PROTO.VarInt32),
+  min: PROTO.Optional(PROTO.VarInt32),
+  max: PROTO.Optional(PROTO.VarInt32),
+  chance: PROTO.Optional(PROTO.Float64),
+});
+
+/** Loot document; open keys in `extensions` JSON. */
+export const LootWire = PROTO.Object({
+  id: PROTO.String,
+  entity: PROTO.Optional(PROTO.String),
+  block: PROTO.Optional(PROTO.String),
+  tools: PROTO.Optional(PROTO.Array(PROTO.String)),
+  entries: PROTO.Array(LootEntryWire),
+  extensions: PROTO.Optional(PROTO.String),
+});
+
 /** IPC hello / ready body. */
 export const Hello = PROTO.Object({
   schema: PROTO.Int32,
   minecraft: PROTO.Optional(PROTO.String),
 });
 
-/** `register` ask (empty `recipes` / `documents` = fingerprint ping). */
+/** `register` ask (empty `recipes` and overlay arrays = fingerprint ping). */
 export const RegisterAsk = PROTO.Object({
   source: PROTO.Optional(PROTO.String),
   kind: PROTO.Optional(PROTO.String),
   fp: PROTO.Optional(PROTO.String),
   recipes: PROTO.Array(RecipeWire),
-  documents: PROTO.Optional(PROTO.Array(PROTO.String)),
+  packs: PROTO.Optional(PROTO.Array(PackWire)),
+  items: PROTO.Optional(PROTO.Array(ItemWire)),
+  blocks: PROTO.Optional(PROTO.Array(IdTagsWire)),
+  entities: PROTO.Optional(PROTO.Array(IdTagsWire)),
+  fluids: PROTO.Optional(PROTO.Array(FluidWire)),
+  gases: PROTO.Optional(PROTO.Array(FluidWire)),
+  tags: PROTO.Optional(PROTO.Array(TagWire)),
+  loots: PROTO.Optional(PROTO.Array(LootWire)),
 });
 
 /** Generic ok reply. */
@@ -92,7 +186,14 @@ export const GetAsk = PROTO.Object({
 /** `get` reply. */
 export const GetReply = PROTO.Object({
   recipe: PROTO.Optional(RecipeWire),
-  document: PROTO.Optional(PROTO.String),
+  pack: PROTO.Optional(PackWire),
+  item: PROTO.Optional(ItemWire),
+  block: PROTO.Optional(IdTagsWire),
+  entity: PROTO.Optional(IdTagsWire),
+  fluid: PROTO.Optional(FluidWire),
+  gas: PROTO.Optional(FluidWire),
+  tag: PROTO.Optional(TagWire),
+  loot: PROTO.Optional(LootWire),
 });
 
 /** Compact list row. */
@@ -141,6 +242,14 @@ export const KindUpdated = PROTO.Object({
 /** `list` reply. */
 export const ListReply = PROTO.Object({
   entries: PROTO.Array(ListEntry),
-  documents: PROTO.Optional(PROTO.Array(PROTO.String)),
   sources: PROTO.Optional(PROTO.Array(PROTO.String)),
+  recipes: PROTO.Optional(PROTO.Array(RecipeWire)),
+  packs: PROTO.Optional(PROTO.Array(PackWire)),
+  items: PROTO.Optional(PROTO.Array(ItemWire)),
+  blocks: PROTO.Optional(PROTO.Array(IdTagsWire)),
+  entities: PROTO.Optional(PROTO.Array(IdTagsWire)),
+  fluids: PROTO.Optional(PROTO.Array(FluidWire)),
+  gases: PROTO.Optional(PROTO.Array(FluidWire)),
+  tags: PROTO.Optional(PROTO.Array(TagWire)),
+  loots: PROTO.Optional(PROTO.Array(LootWire)),
 });

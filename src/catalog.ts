@@ -153,13 +153,15 @@ export function documentHasBadAmount(kind: string, document: unknown): boolean {
     for (const entry of obj.entries) {
       if (typeof entry !== "object" || entry === null || Array.isArray(entry)) return true;
       const row = entry as Record<string, unknown>;
-      for (const key of ["count", "min", "max", "chance"] as const) {
+      for (const key of ["count", "min", "max"] as const) {
         const value = row[key];
         if (value === undefined) continue;
         if (!Number.isInteger(value)) return true;
       }
       const chance = row.chance;
-      if (chance !== undefined && ((chance as number) < 1 || (chance as number) > 1000)) return true;
+      if (chance !== undefined) {
+        if (typeof chance !== "number" || !Number.isFinite(chance) || chance < 0 || chance > 100) return true;
+      }
     }
     return false;
   }

@@ -1,7 +1,7 @@
 {
   "name": "@mcbe-registry/client",
-  "version": "1.0.0",
-  "description": "MCBE Bedrock Registry schema-4 client (typed MCBE-IPC PROTO). Install mcbe-ipc from OmniacDev; enable the Bedrock Registry host pack.",
+  "version": "2.0.0",
+  "description": "MCBE Bedrock Registry schema-5 client (typed MCBE-IPC PROTO). Install mcbe-ipc from OmniacDev; enable the Bedrock Registry host pack.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -56,6 +56,7 @@
   },
   "files": [
     "dist",
+    "template",
     "README.md",
     "LICENSE"
   ],

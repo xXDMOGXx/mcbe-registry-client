@@ -10,7 +10,7 @@ The host is a shared catalog: items, blocks, recipes, fluids, tags, loot, and th
 npm install @mcbe-registry/client mcbe-ipc
 ```
 
-`mcbe-ipc` ([OmniacDev/MCBE-IPC](https://github.com/OmniacDev/MCBE-IPC)) is how packs send messages to each other. Enable **Bedrock Registry** on the world and list it as a UUID dependency if needed. Details: [Installation](https://github.com/xXDMOGXx/mcbe-registry-client/wiki/Installation).
+`mcbe-ipc` ([OmniacDev/MCBE-IPC](https://github.com/OmniacDev/MCBE-IPC)) is how packs send messages to each other. Enable **Bedrock Registry** on the world when you query the catalog. List it as a UUID dependency only if your addon cannot function without that catalog. Details: [Installation](https://github.com/xXDMOGXx/mcbe-registry-client/wiki/Installation).
 
 ```ts
 import { createBedrockClient } from "@mcbe-registry/client/bedrock";
@@ -36,4 +36,4 @@ if (await registry.waitReady()) {
 }
 ```
 
-A single-file build (`bedrock-registry-client.js`) is on [this client’s GitHub Releases](https://github.com/xXDMOGXx/mcbe-registry-client/releases). Place the `mcbe-ipc` pack build beside it as `mcbe-ipc.js`.
+A single-file build (`bedrock-registry-client.js`) is on [this client’s GitHub Releases](https://github.com/xXDMOGXx/mcbe-registry-client/releases), plus a fill-in register template (`bedrock-registry-register.js`). Place the `mcbe-ipc` pack build beside the client as `mcbe-ipc.js`.

@@ -8,7 +8,7 @@ function passThrough(): unknown {
   return token;
 }
 
-/** Minimal PROTO tokens used by schema-4 wire types. */
+/** Minimal PROTO tokens used by schema-5 wire types. */
 export const PROTO = {
   Int32: token,
   VarInt32: token,
